@@ -1,0 +1,114 @@
+<div class="row">
+    <div class="large-12 column">
+        <p>Chunk Size: 1mb (1048576 bytes)</p>
+        <input type="number" min="1048576" value="1048576" id="numChunks" />
+        <input type="file" id="afile" />
+        <div id="done"></div>
+        <div id="bars"></div>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" href="foundation.css">
+<style>
+.progress {
+    color:#black;
+}
+.meter {
+    width:0%;
+    font-size: 12px;
+    padding: .3em;
+}
+
+</style>
+<script>
+ (function () {
+     'use strict';
+     var bars = document.getElementById('bars'),
+         uploaders = [],
+         upload,
+         chooseFile,
+		 loopChunk;
+
+		var blob ,
+             BYTES_PER_CHUNK, SIZE, NUM_CHUNKS, start, end;
+			 
+	
+		 
+     upload = function (blobOrFile) {
+         var progress = document.createElement('div'),
+             meter = document.createElement('span'),
+             xhr;
+         progress.classList.add('progress');
+         meter.classList.add('meter');
+         bars.appendChild(progress);
+         progress.appendChild(meter);
+
+		 var formData = new FormData();
+		 
+		 // get file name '
+		 var filename;
+		 if (chooseFile) {
+			var startIndex = (chooseFile.value.indexOf('\\') >= 0 ? chooseFile.value.lastIndexOf('\\') : chooseFile.value.lastIndexOf('/'));
+			filename = chooseFile.value.substring(startIndex);
+			if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+				filename = filename.substring(1);
+			}
+			//alert(filename);
+		}
+		
+		formData.append('file', blobOrFile,filename);
+		//formData.append("mod", "fileupload");
+		//formData.append("token", "add");
+		 
+         xhr = new XMLHttpRequest();
+
+         xhr.open('POST', 'http://localhost:64745/api/upload/uploads', true);
+		
+         xhr.upload.onprogress = function (e) {
+             if (e.lengthComputable) {
+
+                 meter.value = Math.round((e.loaded / e.total) * 100);
+                 meter.textContent = parseFloat(meter.value) + '%';
+                 meter.style.width = meter.textContent;
+             }
+             if (meter.textContent === '100%') progress.classList.add('success');
+
+
+         };
+         xhr.onloadend = function (e) {
+             uploaders.pop();
+			 if (start < SIZE) {
+				loopChunk();
+			 }
+             if (!uploaders.length) {
+                 bars.appendChild(document.createTextNode(' All Done! '));
+             }
+         };
+         uploaders.push(xhr);
+         xhr.send(formData);
+     };
+	 loopChunk = function ()
+	 {
+	 
+		 upload(blob.slice(start, end));
+		 start = end;
+		 end = start + BYTES_PER_CHUNK;
+         
+	 };
+     chooseFile = document.getElementById('afile');
+     chooseFile.addEventListener('change', function (e) {
+         var self = e.currentTarget;
+             blob = self.files[0];
+         
+		 	BYTES_PER_CHUNK = parseInt(document.getElementById('numChunks').value, 10);
+         SIZE = blob.size;
+         NUM_CHUNKS = Math.max(Math.ceil(SIZE / BYTES_PER_CHUNK), 1);
+         bars.innerHTML = '';
+         bars.innerHTML = '<p>Sending <b>' + NUM_CHUNKS + '</b> chunks:</p>';
+         start = 0;
+         end = BYTES_PER_CHUNK;
+		
+		loopChunk();
+     }, false);
+ })();
+ 
+</script>
