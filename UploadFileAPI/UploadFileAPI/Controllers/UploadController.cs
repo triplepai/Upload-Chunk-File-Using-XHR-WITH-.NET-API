@@ -22,44 +22,44 @@ namespace UploadFileAPI.Controllers
             }
 
         }
-        //[Route("uploads")]
-        //[HttpPost]
-        //public async Task<HttpResponseMessage> Uploads()
-        //{
-        //    // Check if the request contains multipart/form-data.  
-        //    if (!Request.Content.IsMimeMultipartContent())
-        //    {
-        //        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
-        //    }
-        //    var filesReadToProvider = await Request.Content.ReadAsMultipartAsync();
-
-        //    foreach (var stream in filesReadToProvider.Contents)
-        //    {
-        //        var fileBytes = await stream.ReadAsByteArrayAsync();
-        //        AppendAllBytes("C:\\F2F\\"+ stream.Headers.ContentDisposition.FileName.Replace("\"",""), fileBytes);
-        //    }
-        //    return Request.CreateResponse(HttpStatusCode.OK, "success!");
-        //}
-
-        const string StoragePath = @"C:\F2F";
         [Route("uploads")]
         [HttpPost]
-        public void Post()
+        public async Task<HttpResponseMessage> Uploads()
         {
-            if (Request.Content.IsMimeMultipartContent())
+            // Check if the request contains multipart/form-data.  
+            if (!Request.Content.IsMimeMultipartContent())
             {
-                var streamProvider = new MultipartFormDataStreamProvider("c:/F2F/");
-                var task = Request.Content.ReadAsMultipartAsync(streamProvider).ContinueWith(t =>
-                {
-                    if (t.IsFaulted || t.IsCanceled)
-                        throw new HttpResponseException(HttpStatusCode.InternalServerError);
-                });
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
-            else
+            var filesReadToProvider = await Request.Content.ReadAsMultipartAsync();
+
+            foreach (var stream in filesReadToProvider.Contents)
             {
-                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotAcceptable, "This request is not properly formatted"));
+                var fileBytes = await stream.ReadAsByteArrayAsync();
+                AppendAllBytes("C:\\F2F\\" + stream.Headers.ContentDisposition.FileName.Replace("\"", ""), fileBytes);
             }
+            return Request.CreateResponse(HttpStatusCode.OK, "success!");
         }
+
+        //const string StoragePath = @"C:\F2F";
+        //[Route("uploads")]
+        //[HttpPost]
+        //public void Post()
+        //{
+        //    if (Request.Content.IsMimeMultipartContent())
+        //    {
+        //        var streamProvider = new MultipartFormDataStreamProvider("c:/F2F/");
+        //        var task = Request.Content.ReadAsMultipartAsync(streamProvider).ContinueWith(t =>
+        //        {
+        //            if (t.IsFaulted || t.IsCanceled)
+        //                throw new HttpResponseException(HttpStatusCode.InternalServerError);
+        //        });
+        //    }
+        //    else
+        //    {
+        //        throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotAcceptable, "This request is not properly formatted"));
+        //    }
+        //}
 
 
     }

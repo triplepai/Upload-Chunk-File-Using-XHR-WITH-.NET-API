@@ -70,15 +70,24 @@
                  meter.textContent = parseFloat(meter.value) + '%';
                  meter.style.width = meter.textContent;
              }
-             if (meter.textContent === '100%') progress.classList.add('success');
+             if (meter.textContent === '100%')
+			 {
+				progress.classList.add('success');
+				var millisecondsToWait = 500;
+				setTimeout(function() {
+					// Whatever you want to do after the wait
+					 if (start < SIZE) {
+							loopChunk();
+					}
+				}, millisecondsToWait);
+
+			 }
 
 
          };
          xhr.onloadend = function (e) {
              uploaders.pop();
-			 if (start < SIZE) {
-				loopChunk();
-			 }
+		
              if (!uploaders.length) {
                  bars.appendChild(document.createTextNode(' All Done! '));
              }
